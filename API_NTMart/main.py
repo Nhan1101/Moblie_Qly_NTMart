@@ -467,6 +467,76 @@ def create_ticket(payload: TicketCreate) -> TicketResponse:
 
         return build_ticket_response(connection, ticket_id)
 
+@app.put("/tickets/{ticket_id}", response_model=TicketResponse)
+def update_ticket(ticket_id: int, payload: TicketCreate) -> TicketResponse:
+    with closing(get_connection()) as connection:
+        # 1. Kiểm tra phiếu có tồn tại không
+        existing_ticket = fetch_one(connection, "SELECT id FROM sale_tickets WHERE id = ?", (ticket_id,))
+        if not existing_ticket:
+            raise HTTPException(status_code=404, detail="Khong tim thay hoa don de cap nhat")
+
+        # 2. Xóa các chi tiết cũ và HOÀN LẠI tồn kho cũ (Trigger tự động làm nếu có, hoặc làm thủ công ở đây)
+        # Để đơn giản và an toàn, ta sẽ xử lý thủ công việc hoàn lại kho cũ trước khi xóa
+        old_items = fetch_all(connection, "SELECT product_id, quantity FROM sale_ticket_details WHERE ticket_id = ?", (ticket_id,))
+        for item in old_items:
+            connection.execute("UPDATE products SET stock_quantity = stock_quantity + ? WHERE id = ?", (item["quantity"], item["product_id"]))
+
+        connection.execute("DELETE FROM sale_ticket_details WHERE ticket_id = ?", (ticket_id,))
+
+        # 3. Tính toán lại giống hệt POST
+        merged_items: dict[int, int] = {}
+        for item in payload.items:
+            merged_items[item.product_id] = merged_items.get(item.product_id, 0) + item.quantity
+
+        total_amount = 0
+        for product_id, quantity in merged_items.items():
+            product = fetch_one(connection, "SELECT name, price, stock_quantity FROM products WHERE id = ?", (product_id,))
+            if not product:
+                raise HTTPException(status_code=404, detail=f"San pham {product_id} khong ton tai")
+
+            if product["stock_quantity"] < quantity:
+                raise HTTPException(status_code=400, detail=f"San pham '{product['name']}' khong du ton kho")
+
+            subtotal = product["price"] * quantity
+            total_amount += subtotal
+
+            # Lưu chi tiết mới
+            connection.execute(
+                "INSERT INTO sale_ticket_details(ticket_id, product_id, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?)",
+                (ticket_id, product_id, quantity, product["price"], subtotal)
+            )
+            # Trừ kho mới
+            connection.execute("UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?", (quantity, product_id))
+
+        # 4. Cập nhật tổng tiền vào phiếu
+        connection.execute("UPDATE sale_tickets SET total_amount = ? WHERE id = ?", (total_amount, ticket_id))
+
+        connection.commit()
+        return build_ticket_response(connection, ticket_id)
+
+@app.delete("/tickets/{ticket_id}")
+def delete_ticket(ticket_id: int) -> dict[str, str]:
+    with closing(get_connection()) as connection:
+        # 1. Kiểm tra phiếu có tồn tại không
+        existing_ticket = fetch_one(connection, "SELECT id FROM sale_tickets WHERE id = ?", (ticket_id,))
+        if not existing_ticket:
+            raise HTTPException(status_code=404, detail="Khong tim thay hoa don de xoa")
+
+        # 2. Hoàn lại tồn kho cho các sản phẩm trong phiếu
+        items = fetch_all(connection, "SELECT product_id, quantity FROM sale_ticket_details WHERE ticket_id = ?", (ticket_id,))
+        for item in items:
+            connection.execute(
+                "UPDATE products SET stock_quantity = stock_quantity + ? WHERE id = ?",
+                (item["quantity"], item["product_id"])
+            )
+
+        # 3. Xóa chi tiết và phiếu
+        connection.execute("DELETE FROM sale_ticket_details WHERE ticket_id = ?", (ticket_id,))
+        connection.execute("DELETE FROM sale_tickets WHERE id = ?", (ticket_id,))
+
+        connection.commit()
+
+    return {"message": "Xoa hoa don thanh cong"}
 
 @app.get("/stats/overview", response_model=OverviewResponse)
 def overview() -> OverviewResponse:

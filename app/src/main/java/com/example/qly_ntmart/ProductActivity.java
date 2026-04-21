@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -40,6 +41,10 @@ public class ProductActivity extends AppCompatActivity {
         rvProducts = findViewById(R.id.rv_product_list);
         rvProducts.setLayoutManager(new LinearLayoutManager(this));
         
+        // Khởi tạo adapter trống trước để tránh NullPointerException khi search
+        adapter = new ProductAdapter(new ArrayList<>());
+        rvProducts.setAdapter(adapter);
+
         etSearch = findViewById(R.id.et_search_product_list);
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -67,8 +72,14 @@ public class ProductActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    adapter = new ProductAdapter(response.body());
-                    rvProducts.setAdapter(adapter);
+                    // Cập nhật dữ liệu vào adapter hiện tại thay vì tạo mới
+                    adapter.updateData(response.body());
+                    
+                    // Nếu đang có chữ trong ô search thì lọc luôn
+                    String searchText = etSearch.getText().toString();
+                    if (!searchText.isEmpty()) {
+                        adapter.filter(searchText);
+                    }
                 }
             }
 

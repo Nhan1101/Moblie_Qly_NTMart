@@ -27,8 +27,9 @@ public class SaleTicketDetailActivity extends AppCompatActivity {
     private RecyclerView rvItems;
     private TicketDetailAdapter adapter;
     private TextView tvTitle, tvDate, tvTotal;
+    private static final String BASE_URL = "http://10.0.2.2:8000/";
 
-    // Interface API nội bộ (có thể tách ra file riêng sau)
+    // Interface API nội bộ
     interface ApiService {
         @GET("tickets/{id}")
         Call<TicketResponse> getTicketDetail(@Path("id") int id);
@@ -57,15 +58,21 @@ public class SaleTicketDetailActivity extends AppCompatActivity {
 
         findViewById(R.id.iv_close_details).setOnClickListener(v -> finish());
 
-        // Lấy dữ liệu từ API (Giả sử lấy phiếu ID số 1)
-        loadTicketData(1);
+        // Lấy ticketId từ Intent thay vì fix cứng
+        int ticketId = getIntent().getIntExtra("TICKET_ID", -1);
+        if (ticketId != -1) {
+            loadTicketData(ticketId);
+        } else {
+            Toast.makeText(this, "Không tìm thấy mã hóa đơn", Toast.LENGTH_SHORT).show();
+            finish();
+        }
 
         setupNavigation();
     }
 
     private void loadTicketData(int ticketId) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8000/") // Địa chỉ máy tính khi dùng Emulator
+                .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -86,7 +93,7 @@ public class SaleTicketDetailActivity extends AppCompatActivity {
                     adapter = new TicketDetailAdapter(data.items);
                     rvItems.setAdapter(adapter);
                 } else {
-                    Toast.makeText(SaleTicketDetailActivity.this, "Lỗi lấy dữ liệu", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SaleTicketDetailActivity.this, "Lỗi lấy dữ liệu: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 

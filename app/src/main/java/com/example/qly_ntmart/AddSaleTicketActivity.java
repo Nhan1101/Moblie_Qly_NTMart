@@ -39,14 +39,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 public class AddSaleTicketActivity extends AppCompatActivity {
 
     private LinearLayout llProductRowsContainer;
-    private TextView tvGrandTotal;
+    private TextView tvGrandTotal, tvTitle;
     private DecimalFormat df = new DecimalFormat("#,###");
     private List<Product> productList = new ArrayList<>();
     private ApiService apiService;
+    private boolean isEditMode = false;
+    private int ticketId = -1;
 
     interface ApiService {
         @GET("products")
@@ -54,6 +58,12 @@ public class AddSaleTicketActivity extends AppCompatActivity {
 
         @POST("tickets")
         Call<SaleTicket> createTicket(@Body TicketRequest ticketRequest);
+
+        @GET("tickets/{id}")
+        Call<SaleTicket> getTicketDetail(@Path("id") int id);
+
+        @PUT("tickets/{id}")
+        Call<SaleTicket> updateTicket(@Path("id") int id, @Body TicketRequest ticketRequest);
     }
 
     @Override
@@ -70,6 +80,14 @@ public class AddSaleTicketActivity extends AppCompatActivity {
 
         llProductRowsContainer = findViewById(R.id.ll_product_rows_container);
         tvGrandTotal = findViewById(R.id.tv_grand_total);
+        tvTitle = findViewById(R.id.tv_title);
+
+        isEditMode = getIntent().getBooleanExtra("EDIT_MODE", false);
+        ticketId = getIntent().getIntExtra("TICKET_ID", -1);
+
+        if (isEditMode) {
+            tvTitle.setText("Sửa phiếu bán hàng");
+        }
 
         initRetrofit();
 
@@ -79,6 +97,10 @@ public class AddSaleTicketActivity extends AppCompatActivity {
 
         setupNavigation();
         loadProductsFromApi();
+
+        if (isEditMode && ticketId != -1) {
+            loadTicketDetail();
+        }
     }
 
     private void initRetrofit() {
@@ -106,6 +128,73 @@ public class AddSaleTicketActivity extends AppCompatActivity {
         });
     }
 
+    private void loadTicketDetail() {
+        apiService.getTicketDetail(ticketId).enqueue(new Callback<SaleTicket>() {
+            @Override
+            public void onResponse(Call<SaleTicket> call, Response<SaleTicket> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    SaleTicket ticket = response.body();
+                    displayTicketData(ticket);
+                } else {
+                    Toast.makeText(AddSaleTicketActivity.this, "Không tìm thấy thông tin phiếu", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SaleTicket> call, Throwable t) {
+                Toast.makeText(AddSaleTicketActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void displayTicketData(SaleTicket ticket) {
+        llProductRowsContainer.removeAllViews();
+        if (ticket.getItems() != null) {
+            for (TicketItem item : ticket.getItems()) {
+                addProductRowWithData(item);
+            }
+        }
+        updateGrandTotal();
+    }
+
+    private void addProductRowWithData(TicketItem item) {
+        View rowView = LayoutInflater.from(this).inflate(R.layout.item_add_product_row, llProductRowsContainer, false);
+        
+        TextView tvProductName = rowView.findViewById(R.id.tv_product_name_input);
+        EditText etQuantity = rowView.findViewById(R.id.et_quantity);
+        TextView tvUnitPrice = rowView.findViewById(R.id.tv_unit_price);
+        TextView tvSubtotal = rowView.findViewById(R.id.tv_subtotal);
+        ImageView ivDelete = rowView.findViewById(R.id.iv_delete_row);
+
+        tvProductName.setText(item.getProductName());
+        tvProductName.setTag(item.getProductId());
+        etQuantity.setText(String.valueOf(item.getQuantity()));
+        
+        final int[] selectedPrice = {item.getUnitPrice()};
+        tvUnitPrice.setText(df.format(selectedPrice[0]));
+        tvSubtotal.setText(df.format(item.getQuantity() * selectedPrice[0]));
+
+        tvProductName.setOnClickListener(v -> {
+            showSelectProductDialog(tvProductName, tvUnitPrice, etQuantity, tvSubtotal, selectedPrice);
+        });
+
+        etQuantity.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                updateRowSubtotal(etQuantity, selectedPrice[0], tvSubtotal);
+            }
+        });
+
+        ivDelete.setOnClickListener(v -> {
+            llProductRowsContainer.removeView(rowView);
+            updateGrandTotal();
+        });
+
+        llProductRowsContainer.addView(rowView);
+    }
+
     private void saveSaleTicket() {
         List<TicketItemRequest> items = new ArrayList<>();
 
@@ -131,22 +220,41 @@ public class AddSaleTicketActivity extends AppCompatActivity {
 
         TicketRequest request = new TicketRequest(1, items);
 
-        apiService.createTicket(request).enqueue(new Callback<SaleTicket>() {
-            @Override
-            public void onResponse(Call<SaleTicket> call, Response<SaleTicket> response) {
-                if (response.isSuccessful()) {
-                    showSuccessDialog();
-                } else {
-                    Log.e("API_ERROR", "Code: " + response.code());
-                    Toast.makeText(AddSaleTicketActivity.this, "Lỗi server: " + response.code(), Toast.LENGTH_SHORT).show();
+        if (isEditMode) {
+            apiService.updateTicket(ticketId, request).enqueue(new Callback<SaleTicket>() {
+                @Override
+                public void onResponse(Call<SaleTicket> call, Response<SaleTicket> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(AddSaleTicketActivity.this, "Cập nhật thành công", Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(AddSaleTicketActivity.this, "Lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<SaleTicket> call, Throwable t) {
-                Toast.makeText(AddSaleTicketActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(Call<SaleTicket> call, Throwable t) {
+                    Toast.makeText(AddSaleTicketActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            apiService.createTicket(request).enqueue(new Callback<SaleTicket>() {
+                @Override
+                public void onResponse(Call<SaleTicket> call, Response<SaleTicket> response) {
+                    if (response.isSuccessful()) {
+                        showSuccessDialog();
+                    } else {
+                        Log.e("API_ERROR", "Code: " + response.code());
+                        Toast.makeText(AddSaleTicketActivity.this, "Lỗi server: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<SaleTicket> call, Throwable t) {
+                    Toast.makeText(AddSaleTicketActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     private void showSuccessDialog() {

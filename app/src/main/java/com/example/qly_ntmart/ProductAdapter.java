@@ -7,8 +7,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.text.DecimalFormat;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHolder> {
 
@@ -48,22 +50,38 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return products.size();
+        return products != null ? products.size() : 0;
+    }
+
+    public void updateData(List<Product> newProducts) {
+        this.products = new ArrayList<>(newProducts);
+        this.productsFull = new ArrayList<>(newProducts);
+        notifyDataSetChanged();
     }
 
     public void filter(String text) {
+        if (productsFull == null) return;
+        
         products.clear();
         if (text.isEmpty()) {
             products.addAll(productsFull);
         } else {
-            text = text.toLowerCase();
+            String filterPattern = removeAccent(text.toLowerCase().trim());
             for (Product item : productsFull) {
-                if (item.getName().toLowerCase().contains(text)) {
+                String nameNormalized = removeAccent(item.getName().toLowerCase());
+                if (nameNormalized.contains(filterPattern)) {
                     products.add(item);
                 }
             }
         }
         notifyDataSetChanged();
+    }
+
+    private String removeAccent(String s) {
+        if (s == null) return "";
+        String temp = Normalizer.normalize(s, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(temp).replaceAll("").replace('đ', 'd').replace('Đ', 'D');
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

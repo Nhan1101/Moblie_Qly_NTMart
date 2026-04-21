@@ -50,6 +50,7 @@
                 android:layout_weight="1" />
 
             <ImageView
+                android:id="@+id/iv_user_profile"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:contentDescription="User profile"
@@ -116,7 +117,7 @@
                 android:layout_marginStart="8dp"
                 android:autofillHints="none"
                 android:background="@null"
-                android:hint="Tìm kiếm phiếu bán hàng theo từ khóa"
+                android:hint="Tìm kiếm số hóa đơn (VD: 1, 01...)"
                 android:inputType="text"
                 android:textSize="14sp" />
         </LinearLayout>
