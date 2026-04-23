@@ -194,15 +194,15 @@
     <!-- Nút Tiếp tục -->
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnVerify"
-        android:layout_width="240dp"
-        android:layout_height="60dp"
+        android:layout_width="200dp"
+        android:layout_height="52dp"
         android:layout_marginTop="40dp"
         android:background="@drawable/button_background"
         android:backgroundTint="#415A2B"
         android:text="Tiếp tục"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

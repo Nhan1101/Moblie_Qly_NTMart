@@ -37,16 +37,12 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng nhập số điện thoại!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Chuyển 0xx → +84xx
             String phoneFormatted = "+84" + phone.substring(1);
             sendOTP(phoneFormatted);
         });
     }
 
     private void sendOTP(String phoneNumber) {
-//        btnSendOTP.setEnabled(false);
-//        btnSendOTP.setText("Đang gửi...");
-
         PhoneAuthOptions options = PhoneAuthOptions.newBuilder(auth)
                 .setPhoneNumber(phoneNumber)
                 .setTimeout(60L, TimeUnit.SECONDS)
@@ -55,7 +51,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
                     @Override
                     public void onVerificationCompleted(PhoneAuthCredential credential) {
-                        // Tự động xác thực (một số thiết bị tự đọc SMS)
                     }
 
                     @Override
@@ -69,7 +64,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                     @Override
                     public void onCodeSent(String verificationId,
                                            PhoneAuthProvider.ForceResendingToken token) {
-                        // OTP đã gửi → chuyển sang màn nhập OTP
                         Toast.makeText(ForgotPasswordActivity.this,
                                 "OTP đã được gửi!", Toast.LENGTH_SHORT).show();
 

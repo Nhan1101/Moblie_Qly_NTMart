@@ -12,7 +12,7 @@
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="70dp">
+        android:paddingBottom="60dp">
 
         <!-- Header -->
         <LinearLayout
@@ -82,15 +82,27 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_title" />
 
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+        <!-- Nút gạt chế độ sáng tối -->
+        <FrameLayout
+            android:id="@+id/btn_theme_toggle"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:layout_marginEnd="16dp"
-            android:contentDescription="Calendar"
-            android:src="@android:drawable/ic_menu_month"
+            android:background="@drawable/bg_circle_toggle"
+            android:clickable="true"
+            android:focusable="true"
             app:layout_constraintBottom_toBottomOf="@id/tv_subtitle"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tv_title" />
+            app:layout_constraintTop_toTopOf="@id/tv_title">
+
+            <ImageView
+                android:id="@+id/iv_theme_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_moon"
+                app:tint="#64748B" />
+        </FrameLayout>
 
         <!-- Search Bar -->
         <LinearLayout
@@ -141,21 +153,21 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="90dp"
+        android:layout_marginBottom="80dp"
         android:contentDescription="Add sale ticket"
         android:src="@android:drawable/ic_input_add"
         app:backgroundTint="@color/fab_bg"
         app:fabSize="normal"
         app:tint="@color/white" />
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation (Đã thu nhỏ) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="58dp"
         android:layout_gravity="bottom"
         android:background="@color/white"
         android:baselineAligned="false"
-        android:elevation="10dp"
+        android:elevation="8dp"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -168,17 +180,18 @@
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:contentDescription="Sale tab"
                 android:src="@android:drawable/ic_menu_recent_history"
                 app:tint="@color/nav_active" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text="Bán hàng"
                 android:textColor="@color/nav_active"
-                android:textSize="12sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -191,17 +204,18 @@
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:contentDescription="Inventory tab"
                 android:src="@android:drawable/ic_menu_agenda"
                 app:tint="@color/nav_inactive" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text="Hàng hóa"
                 android:textColor="@color/nav_inactive"
-                android:textSize="12sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -214,17 +228,18 @@
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:contentDescription="Report tab"
                 android:src="@android:drawable/ic_menu_report_image"
                 app:tint="@color/nav_inactive" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text="Báo cáo"
                 android:textColor="@color/nav_inactive"
-                android:textSize="12sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
     </LinearLayout>

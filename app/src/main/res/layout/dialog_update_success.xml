@@ -36,7 +36,7 @@
             android:layout_marginTop="32dp"
             android:layout_marginBottom="32dp"
             android:gravity="center"
-            android:text="Thêm phiếu bán thành công"
+            android:text="Cập nhật phiếu bán thành công"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold" />

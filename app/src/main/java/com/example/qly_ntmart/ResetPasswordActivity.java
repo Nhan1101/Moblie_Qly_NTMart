@@ -56,13 +56,16 @@ public class ResetPasswordActivity extends AppCompatActivity {
 //        btnResetPassword.setEnabled(false);
 //        btnResetPassword.setText("Đang xử lý...");
 
+        // MÃ HÓA MẬT KHẨU TRƯỚC KHI GỬI
+        String hashedPassword = HashUtils.sha256(newPassword);
+
         new Thread(() -> {
             try {
                 OkHttpClient client = new OkHttpClient();
                 JSONObject json = new JSONObject();
                 json.put("token", token);
                 json.put("phone", phone);
-                json.put("new_password", newPassword);
+                json.put("new_password", hashedPassword); // Gửi mật khẩu đã băm
 
                 RequestBody body = RequestBody.create(
                         MediaType.get("application/json; charset=utf-8"),
@@ -76,8 +79,6 @@ public class ResetPasswordActivity extends AppCompatActivity {
 
                 Response response = client.newCall(request).execute();
                 String responseBody = response.body().string();
-
-                // IN KẾT QUẢ RA LOGCAT Ở ĐÂY
                 Log.d("API_RESULT", "Server trả về: " + responseBody);
 
                 JSONObject result = new JSONObject(responseBody);

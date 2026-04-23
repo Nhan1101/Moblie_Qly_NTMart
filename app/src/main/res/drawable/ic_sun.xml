@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Hình tròn tâm mặt trời -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M12,12m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+
+    <!-- Các tia nắng được vẽ bằng nét (stroke) đầu tròn để đảm bảo đối xứng -->
+    <path
+        android:strokeColor="#94A3B8"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M12,3V5 M12,19V21 M3,12H5 M19,12H21 M5.64,5.64L7.76,7.76 M16.24,16.24L18.36,18.36 M5.64,18.36L7.76,16.24 M16.24,7.76L18.36,5.64" />
+</vector>

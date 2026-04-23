@@ -19,13 +19,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -69,14 +65,7 @@ public class AddSaleTicketActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_sale_ticket);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         llProductRowsContainer = findViewById(R.id.ll_product_rows_container);
         tvGrandTotal = findViewById(R.id.tv_grand_total);
@@ -123,7 +112,6 @@ public class AddSaleTicketActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<Product>> call, Throwable t) {
                 Log.e("API_ERROR", t.getMessage());
-                Toast.makeText(AddSaleTicketActivity.this, "Không thể tải danh sách sản phẩm", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -135,14 +123,11 @@ public class AddSaleTicketActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     SaleTicket ticket = response.body();
                     displayTicketData(ticket);
-                } else {
-                    Toast.makeText(AddSaleTicketActivity.this, "Không tìm thấy thông tin phiếu", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<SaleTicket> call, Throwable t) {
-                Toast.makeText(AddSaleTicketActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -209,12 +194,15 @@ public class AddSaleTicketActivity extends AppCompatActivity {
             if (tag instanceof Integer && !qtyStr.isEmpty()) {
                 int productId = (Integer) tag;
                 int qty = Integer.parseInt(qtyStr);
-                items.add(new TicketItemRequest(productId, qty));
+                if (qty > 0) {
+                    items.add(new TicketItemRequest(productId, qty));
+                }
             }
         }
 
+        // KIỂM TRA NẾU KHÔNG CÓ HÀNG HÓA HOẶC SỐ LƯỢNG
         if (items.isEmpty()) {
-            Toast.makeText(this, "Vui lòng thêm ít nhất một sản phẩm", Toast.LENGTH_SHORT).show();
+            showAddErrorDialog();
             return;
         }
 
@@ -227,15 +215,10 @@ public class AddSaleTicketActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         Toast.makeText(AddSaleTicketActivity.this, "Cập nhật thành công", Toast.LENGTH_SHORT).show();
                         finish();
-                    } else {
-                        Toast.makeText(AddSaleTicketActivity.this, "Lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
                     }
                 }
-
                 @Override
-                public void onFailure(Call<SaleTicket> call, Throwable t) {
-                    Toast.makeText(AddSaleTicketActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
-                }
+                public void onFailure(Call<SaleTicket> call, Throwable t) {}
             });
         } else {
             apiService.createTicket(request).enqueue(new Callback<SaleTicket>() {
@@ -244,14 +227,12 @@ public class AddSaleTicketActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         showSuccessDialog();
                     } else {
-                        Log.e("API_ERROR", "Code: " + response.code());
-                        Toast.makeText(AddSaleTicketActivity.this, "Lỗi server: " + response.code(), Toast.LENGTH_SHORT).show();
+                        showAddErrorDialog();
                     }
                 }
-
                 @Override
                 public void onFailure(Call<SaleTicket> call, Throwable t) {
-                    Toast.makeText(AddSaleTicketActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    showAddErrorDialog();
                 }
             });
         }
@@ -271,6 +252,21 @@ public class AddSaleTicketActivity extends AppCompatActivity {
             dialog.dismiss();
             finish();
         });
+
+        dialog.show();
+    }
+
+    private void showAddErrorDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_error, null);
+        builder.setView(dialogView);
+        
+        AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        dialogView.findViewById(R.id.iv_close_dialog).setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }

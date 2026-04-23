@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Đã xóa EdgeToEdge
         setContentView(R.layout.activity_main);
 
         rvSales = findViewById(R.id.rv_sale_list);

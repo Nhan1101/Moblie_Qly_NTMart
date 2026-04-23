@@ -83,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="4dp"
-                    android:text="Báo cáo doanh thu và hiệu suất bán hàng theo dữ liệu gốc"
+                    android:text="Quản lý hiệu suất và thông tin tồn kho"
                     android:textColor="@color/text_gray"
                     android:textSize="14sp" />
 

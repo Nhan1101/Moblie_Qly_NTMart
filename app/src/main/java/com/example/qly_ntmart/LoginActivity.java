@@ -14,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import retrofit2.Call;
@@ -40,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        // Đã xóa EdgeToEdge để hiển thị màu từ Theme
         setContentView(R.layout.activity_login);
 
         etUsername = findViewById(R.id.et_username);
@@ -84,13 +83,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void performLogin(String user, String pass) {
+        String hashedPass = HashUtils.sha256(pass);
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://192.168.56.1:8000/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         ApiService apiService = retrofit.create(ApiService.class);
-        LoginRequest request = new LoginRequest(user, pass);
+        LoginRequest request = new LoginRequest(user, hashedPass);
 
         apiService.login(request).enqueue(new Callback<LoginResponse>() {
             @Override

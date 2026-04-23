@@ -1,8 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.Qly_NTmart" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Đặt màu tím cho thanh Status Bar (Phía trên) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- Đặt màu đen cho thanh Navigation Bar (Phía dưới) -->
+        <item name="android:navigationBarColor">#000000</item>
+
+        <!-- Để icon trên status bar màu trắng cho nổi bật trên nền tím -->
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Đảm bảo thanh hệ thống hiển thị màu sắc rõ ràng -->
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
     </style>
 
     <style name="Theme.Qly_NTmart" parent="Base.Theme.Qly_NTmart" />
